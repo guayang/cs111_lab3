@@ -39,6 +39,10 @@ extern uint32_t ospfs_length;
 // A pointer to the superblock; see ospfs.h for details on the struct.
 static ospfs_super_t * const ospfs_super =
 	(ospfs_super_t *) &ospfs_data[OSPFS_BLKSIZE];
+// A pointer to the free block bitmap
+
+static uint32_t * ospfs_bitmap = (uint32_t *) &ospfs_data[OSPFS_BLKSIZE * OSPFS_FREEMAP_BLK];
+static int bit_size_of_free_block = (ospfs_super->os_firstinob - 2)*OSPFS_BLKBITSIZE;
 
 static int change_size(ospfs_inode_t *oi, uint32_t want_size);
 static ospfs_direntry_t *find_direntry(ospfs_inode_t *dir_oi, const char *name, int namelen);
@@ -552,10 +556,17 @@ ospfs_unlink(struct inode *dirino, struct dentry *dentry)
 static uint32_t
 allocate_block(void)
 {
-	/* EXERCISE: Your code here */
-	return 0;
+	uint32_t i;
+    for (i=0;i < bit_size_of_free_block ;i++){
+		if (bitvector_test(ospfs_bitmap, i)
+		{
+			bitvector_set(ospfs_bitmap, i);
+			return i;
+		}
+    }
+    return 0;
 }
-
+ 
 
 // free_block(blockno)
 //	Use this function to free an allocated block.
@@ -571,7 +582,7 @@ allocate_block(void)
 static void
 free_block(uint32_t blockno)
 {
-	/* EXERCISE: Your code here */
+	bitvector_clear(ospfs_bitmap, blockno);
 }
 
 
