@@ -42,7 +42,6 @@ static ospfs_super_t * const ospfs_super =
 // A pointer to the free block bitmap
 
 static uint32_t * ospfs_bitmap = (uint32_t *) &ospfs_data[OSPFS_BLKSIZE * OSPFS_FREEMAP_BLK];
-static int bit_size_of_free_block = (ospfs_super->os_firstinob - 2)*OSPFS_BLKBITSIZE;
 
 static int change_size(ospfs_inode_t *oi, uint32_t want_size);
 static ospfs_direntry_t *find_direntry(ospfs_inode_t *dir_oi, const char *name, int namelen);
@@ -556,13 +555,14 @@ ospfs_unlink(struct inode *dirino, struct dentry *dentry)
 static uint32_t
 allocate_block(void)
 {
-	uint32_t i;
-    for (i=0;i < bit_size_of_free_block ;i++){
-		if (bitvector_test(ospfs_bitmap, i)
-		{
-			bitvector_set(ospfs_bitmap, i);
-			return i;
-		}
+    uint32_t bit_size_of_free_block = (ospfs_super->os_firstinob - 2)*OSPFS_BLKBITSIZE;
+    uint32_t i;
+
+    for (i=0; i < bit_size_of_free_block; i++) {
+	if (bitvector_test(ospfs_bitmap, i)) {
+		bitvector_set(ospfs_bitmap, i);
+		return i;
+	}
     }
     return 0;
 }
@@ -851,11 +851,13 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
 {
 	ospfs_inode_t *oi = ospfs_inode(filp->f_dentry->d_inode->i_ino);
 	int retval = 0;
-	size_t amount = 0;
+	size_t amount = 0; // amount of data written at a time
 
 	// Make sure we don't read past the end of the file!
 	// Change 'count' so we never read past the end of the file.
 	/* EXERCISE: Your code here */
+	if (count + *f_pos > oi->oi_size)
+		count = oi->oi_size - *f_pos;
 
 	// Copy the data to user block by block
 	while (amount < count && retval >= 0) {
@@ -876,8 +878,17 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
 		// into user space.
 		// Use variable 'n' to track number of bytes moved.
 		/* EXERCISE: Your code here */
-		retval = -EIO; // Replace these lines
-		goto done;
+		//f_pos relative to a block
+		uint32_t offset = *f_pos % OSPFS_BLKSIZE;
+		if (count - amount > OSPFS_BLKSIZE - offset)
+			n = OSPFS_BLKSIZE - offset;
+		else
+			n = count - amount;
+
+		if (copy_to_user(buffer, data + offset, n) != 0) {
+			retval = -EFAULT;
+			goto done;
+		}
 
 		buffer += n;
 		amount += n;
