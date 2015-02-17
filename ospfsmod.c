@@ -699,7 +699,39 @@ add_block(ospfs_inode_t *oi)
 	// keep track of allocations to free in case of -ENOSPC
 	uint32_t *allocated[2] = { 0, 0 };
 
+	uint32_t new_block = 0;
 	/* EXERCISE: Your code here */
+	if (n < OSPFS_NDIRECT) 
+	// Simply add one more direct block
+	{
+		if ((new_block = allocate_block()) == 0)
+			return -ENOSPC;	
+		oi->direct[n] = new_block;
+	}
+	if (OSPFS_NDIRECT <= n < OSPFS_NDIRECT + OSPFS_NINDIRECT)
+	{
+		// Allocate the block for oi_indirect
+		if (n == OSPFS_NDIRECT){
+			if ((new_block = allocate_block()) == 0)
+				return -ENOSPC;	
+			oi->oi_indirect = new_block;
+		}
+		if ((new_block = allocate_block()) == 0)
+			return -ENOSPC;
+		uint32_t *indirect_block = ospfs_block(oi->oi_indirect);
+		indirect_block[n - OSPFS_NDIRECT] = new_block;
+	}
+	// 
+	if (OSPFS_NDIRECT + OSPFS_NINDIRECT <= n < OSPFS_MAXFILEBLKS)
+	{
+		
+	}
+	if (n >= OSPFS_MAXFILEBLKS)
+	{
+		return -ENOSPC
+	}
+	oi->oi_size += OSPFS_BLKSIZE;
+	zero_out(new_block);
 	return -EIO; // Replace this line
 }
 
@@ -780,11 +812,14 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 	int r = 0;
 
 	while (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size)) {
-	        /* EXERCISE: Your code here */
+	    /* EXERCISE: Your code here */
+		add_block(oi);
 		return -EIO; // Replace this line
 	}
 	while (ospfs_size2nblocks(oi->oi_size) > ospfs_size2nblocks(new_size)) {
-	        /* EXERCISE: Your code here */
+		/* EXERCISE: Your code here */
+		remove_block(oi);
+	    
 		return -EIO; // Replace this line
 	}
 
