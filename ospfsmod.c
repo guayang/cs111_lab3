@@ -15,6 +15,8 @@
 #include <linux/kernel.h>
 #include <linux/sched.h>
 
+#include <string.h>
+
 /****************************************************************************
  * ospfsmod
  *
@@ -690,6 +692,11 @@ direct_index(uint32_t b)
 //     indirect blocks.
 //  3) update the oi->oi_size field
 
+static void
+zero_out(uint32_t blockno){
+	memset(ospfs_block(blockno),0,OSPFS_BLKSIZE);
+}
+
 static int
 add_block(ospfs_inode_t *oi)
 {
@@ -715,6 +722,7 @@ add_block(ospfs_inode_t *oi)
 			if ((new_block = allocate_block()) == 0)
 				return -ENOSPC;	
 			oi->oi_indirect = new_block;
+//  HERE!!!!  allocated[0] = new_block;
 		}
 		if ((new_block = allocate_block()) == 0)
 			return -ENOSPC;
@@ -724,7 +732,25 @@ add_block(ospfs_inode_t *oi)
 	// 
 	if (OSPFS_NDIRECT + OSPFS_NINDIRECT <= n < OSPFS_MAXFILEBLKS)
 	{
-		
+		uint32_t blockoff = n - (OSPFS_NDIRECT + OSPFS_NINDIRECT);
+		if (blockoff == 0){
+			if ((new_block = allocate_block()) == 0)
+				return -ENOSPC;	
+			oi->oi_indirect2 = new_block;	
+		}
+
+		uint32_t *indirect2_block = ospfs_block(oi->oi_indirect2);
+		if (blockoff % OSPFS_NINDIRECT == 0){
+			if ((new_block = allocate_block()) == 0)
+				return -ENOSPC;	
+			indirect2_block[blockoff / OSPFS_NINDIRECT] = new_block;		
+		}
+
+		uint32_t *indirect_block = ospfs_block(indirect2_block[blockoff / OSPFS_NINDIRECT]);
+		if ((new_block = allocate_block()) == 0)
+			return -ENOSPC;
+		indirect[blockoff % OSPFS_NINDIRECT] = new_block;
+		return indirect_block[blockoff % OSPFS_NINDIRECT];		
 	}
 	if (n >= OSPFS_MAXFILEBLKS)
 	{
@@ -732,7 +758,8 @@ add_block(ospfs_inode_t *oi)
 	}
 	oi->oi_size += OSPFS_BLKSIZE;
 	zero_out(new_block);
-	return -EIO; // Replace this line
+	return 0;
+	//return -EIO; // Replace this line
 }
 
 
@@ -825,6 +852,7 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 
 	/* EXERCISE: Make sure you update necessary file meta data
 	             and return the proper value. */
+	oi->oi_size = new_size;
 	return -EIO; // Replace this line
 }
 
@@ -838,6 +866,7 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 static int
 ospfs_notify_change(struct dentry *dentry, struct iattr *attr)
 {
+
 	struct inode *inode = dentry->d_inode;
 	ospfs_inode_t *oi = ospfs_inode(inode->i_ino);
 	int retval = 0;
@@ -990,7 +1019,7 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 		// Keep track of the number of bytes moved in 'n'.
 		/* EXERCISE: Your code here */
 		uint32_t offset = *f_pos % OSPFS_BLKSIZE;
-		if (count - amount > OSPFS_BLKSIZE - offset)
+		if (OSPFS_BLKSIZE - offset < count - amount)
 			n = OSPFS_BLKSIZE - offset;
 		else
 			n = count - amount;
@@ -1150,7 +1179,10 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 	ospfs_inode_t *dir_oi = ospfs_inode(dir->i_ino);
 	uint32_t entry_ino = 0;
 	/* EXERCISE: Your code here. */
-	return -EINVAL; // Replace this line
+	if (dentry->d_name.len > OSPFS_MAXNAMELEN)
+		return -ENAMETOOLONG;
+	if (find_direntry(dir_oi,dentry->d_name.name,dentry->d_name.len))
+		return -EEXIST;
 
 	/* Execute this code after your function has successfully created the
 	   file.  Set entry_ino to the created file's inode number before
