@@ -1116,20 +1116,23 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 	uint32_t n = ospfs_size2nblocks(dir_oi->oi_size);
 	uint32_t i;
 	uint32_t new_block = 0;
-
+	void* b;
+	ospfs_direntry_t *d;
+	
 	if (n < OSPFS_NDIRECT)
 	{
-		ospfs_direntry_t *b = oi->oi_direct[n - 1];
+		b = ospfs_block(dir_oi->oi_direct[n - 1]);		
 		for (i = 0; i < OSPFS_MAXNUM_OF_DIRENTRY_IN_ONE_BLOCK; i++)
 		{
-			if (b[i]->od_ino == 0)
-				return b[i];
+			d = b + i * OSPFS_DIRENTRY_SIZE;
+			if (d->od_ino == 0)
+				return d;
 		}
 		// If there is no empty dir entry in this block, create a new one		
 		if ((new_block = allocate_block()) == 0)
 			return ERR_PTR(-ENOSPC);	
 		dir_oi->oi_direct[n] = new_block;
-		return (ospfs_direntry_t *)new_block;
+		return (ospfs_direntry_t *)ospfs_block(new_block);
 	}else
 		return ERR_PTR(-EINVAL); 
 	// Situation of too many dir entry is not considered here!!!!	
