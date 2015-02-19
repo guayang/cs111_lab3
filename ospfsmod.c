@@ -1207,12 +1207,31 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 {
 	ospfs_inode_t *dir_oi = ospfs_inode(dir->i_ino);
 	uint32_t entry_ino = 0;
+	uint32_t i, name_len;
+	ospfs_direntry_t *od; 
+	ospfs_inode_t *ino;
 	/* EXERCISE: Your code here. */
 	if (dentry->d_name.len > OSPFS_MAXNAMELEN)
 		return -ENAMETOOLONG;
 	if (find_direntry(dir_oi,dentry->d_name.name,dentry->d_name.len))
 		return -EEXIST;
-
+	// Find an empty dir entry
+	od = create_blank_direntry(ospfs_inode_t *dir_oi);
+	if (IS_ERR(od))
+			return PTR_ERR(od);
+	// Find an empty inode;
+    entry_ino = ++ospfs_super->os_ninodes;
+    // Initialize the dir entry
+    od->od_ino = entry_ino;
+    strncpy(od->od_name, dentry->d_name.name, dentry->d_name.len);
+    od->od_name[dentry->d_name.len] = '\0';
+    // Initialize the inode
+    ino = ospfs_inode(entry_ino);
+    ino->oi_size = 0;
+    ino->oi_ftype= OSPFS_FTYPE_REG;
+    ino->oi_nlink= 1;
+	ino->oi_mode = mode;		  
+	
 	/* Execute this code after your function has successfully created the
 	   file.  Set entry_ino to the created file's inode number before
 	   getting here. */
