@@ -186,6 +186,7 @@ typedef struct ospfs_symlink_inode {
  *****************************************************************************/
 
 #define OSPFS_DIRENTRY_SIZE	128
+#define OSPFS_MAXNUM_OF_DIRENTRY_IN_ONE_BLOCK	(OSPFS_BLKSIZE / OSPFS_DIRENTRY_SIZE)
 #define OSPFS_MAXNAMELEN	(OSPFS_DIRENTRY_SIZE - 5)
 
 typedef struct ospfs_direntry {
