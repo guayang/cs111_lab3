@@ -892,7 +892,7 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 {
 //	uint32_t old_size = oi->oi_size;
 //	int r = 0;
-	eprintk("change size!\n";)
+	eprintk("change size!\n");
 	return 0;
 	while (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size)) {
 	    /* EXERCISE: Your code here */
@@ -1059,7 +1059,7 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	// If the user is writing past the end of the file, change the file's
 	// size to accomodate the request.  (Use change_size().)
 	/* EXERCISE: Your code here */
-	if (count > oi->oi_size - *f_pos)
+	if (*f_pos + count < oi->oi_size)
 		change_size(oi, count + *f_pos);
 
 	// Copy data block by block
