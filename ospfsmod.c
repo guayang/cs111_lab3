@@ -1208,6 +1208,13 @@ ospfs_link(struct dentry *src_dentry, struct inode *dir, struct dentry *dst_dent
 //
 //   EXERCISE: Complete this function.
 
+static uint32_t find_empty_inode(){
+	ino_t i;
+	for (i=2; i<ospfs_super->os_ninodes; i++)
+		if (ospfs_inode(i)->oi_nlink == 0)
+			return i;
+	return 0;
+}
 static int
 ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidata *nd)
 {
@@ -1227,8 +1234,9 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 			return PTR_ERR(od);
 		eprintk("Still fine here!!!\n");
 	// Find an empty inode;
-    entry_ino = ospfs_super->os_ninodes++;
-    eprink("entry_ino %d\n",entry_ino);
+    if ((entry_ino = find_empty_inode()) == 0)
+    	return -ENOSPC;
+    eprintk("entry_ino %d\n",entry_ino);
     // Initialize the dir entry
     od->od_ino = entry_ino;
     strncpy(od->od_name, dentry->d_name.name, dentry->d_name.len);
