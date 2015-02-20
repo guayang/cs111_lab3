@@ -467,14 +467,14 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 			break;		/* Fix me! */	
 		}
 		eprintk("ino: %d\n",od->od_ino);
-		//entry_oi = ospfs_inode(od->od_ino);
+		entry_oi = ospfs_inode(od->od_ino);
 
-		//ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->od_ino, entry_oi->oi_ftype);
-		//if (ok_so_far >= 0)
-		f_pos++;	
-	//	else {
-	//		r = 0;
-	//	}
+		ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->od_ino, entry_oi->oi_ftype);
+		if (ok_so_far >= 0)
+			f_pos++;	
+		else {
+			r = 0;
+		}
 	
 
 		/* Get a pointer to the next entry (od) in the directory.
