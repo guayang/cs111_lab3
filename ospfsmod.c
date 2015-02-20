@@ -516,7 +516,7 @@ ospfs_unlink(struct inode *dirino, struct dentry *dentry)
 			break;
 	}
 
-	if (entry_off == dir_oi->oi_size) {
+	if (entry_offset == dir_oi->oi_size) {
 		printk("<1>ospfs_unlink should not fail!\n");
 		return -ENOENT;
 	}
