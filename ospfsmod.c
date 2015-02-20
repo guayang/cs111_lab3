@@ -891,9 +891,9 @@ remove_block(ospfs_inode_t *oi)
 static int
 change_size(ospfs_inode_t *oi, uint32_t new_size)
 {
-//	uint32_t old_size = oi->oi_size;
+	uint32_t old_size = oi->oi_size;
 //	int r = 0;
-	eprintk("change size!\n");
+	eprintk("Enter change size!\n");
 
 	while (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size)) {
 	    /* EXERCISE: Your code here */
@@ -914,6 +914,7 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 	             and return the proper value. */
 	oi->oi_size = new_size;
 	//return -EIO; // Replace this line
+	eprintk("Leave change size!\n");
 	return 0;
 }
 
@@ -931,11 +932,12 @@ ospfs_notify_change(struct dentry *dentry, struct iattr *attr)
 	struct inode *inode = dentry->d_inode;
 	ospfs_inode_t *oi = ospfs_inode(inode->i_ino);
 	int retval = 0;
-
+	eprintk("I am inside notify_change\n");
 	if (attr->ia_valid & ATTR_SIZE) {
 		// We should not be able to change directory size
 		if (oi->oi_ftype == OSPFS_FTYPE_DIR)
 			return -EPERM;
+	
 		if ((retval = change_size(oi, attr->ia_size)) < 0)
 			goto out;
 	}
@@ -1054,7 +1056,8 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	uint32_t n,blockno;
 	char *data;
 	uint32_t offset;
-
+	
+	eprintk("Enter file write!\n");
 	// Support files opened with the O_APPEND flag.  To detect O_APPEND,
 	// use struct file's f_flags field and the O_APPEND bit.
 	/* EXERCISE: Your code here */
@@ -1065,9 +1068,7 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	// size to accomodate the request.  (Use change_size().)
 	/* EXERCISE: Your code here */
 	if (oi->oi_size < *f_pos + count){
-		return 0;
-		change_size(oi, count + *f_pos);
-		return 0;
+		change_size(oi, *f_pos + count);
 	}
 
 	// Copy data block by block
