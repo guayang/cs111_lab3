@@ -901,17 +901,17 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 
 	while (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size)) {
 	    /* EXERCISE: Your code here */
-	    eprintk("Add_block, current size: %d",oi->oi_size, " target size: %d",new_size);
+	    eprintk("Add_block, current size: %d  target size: %d",oi->oi_size,new_size);
 		add_block(oi);
-		eprintk("After Add_block, current size: %d",oi->oi_size, " target size: %d",new_size);
+		eprintk("After Add_block, current size: %d  target size: %d",oi->oi_size,new_size);
 		//return -EIO; // Replace this line
 	}
 	while (ospfs_size2nblocks(oi->oi_size) > ospfs_size2nblocks(new_size)) {
 		/* EXERCISE: Your code here */
-		eprintk("Remove_block, current size: %d",oi->oi_size, " target size: %d",new_size);
+		eprintk("Remove_block, current size: %d target size: %d",oi->oi_size,new_size);
 		remove_block(oi);
 	    	//return -EIO; // Replace this line
-		eprintk("After Remove_block, current size: %d",oi->oi_size, " target size: %d",new_size);
+		eprintk("After Remove_block, current size: %d target size: %d",oi->oi_size,new_size);
 	}
 
 	/* EXERCISE: Make sure you update necessary file meta data
