@@ -504,13 +504,12 @@ ospfs_unlink(struct inode *dirino, struct dentry *dentry)
 {
 	ospfs_inode_t *oi = ospfs_inode(dentry->d_inode->i_ino);
 	ospfs_inode_t *dir_oi = ospfs_inode(dentry->d_parent->d_inode->i_ino);
-	int entry_off;
+	int entry_offset;
 	ospfs_direntry_t *od;
 
 	od = NULL; // silence compiler warning; entry_off indicates when !od
-	for (entry_off = 0; entry_off < dir_oi->oi_size;
-	     entry_off += OSPFS_DIRENTRY_SIZE) {
-		od = ospfs_inode_data(dir_oi, entry_off);
+	for (entry_offset = 0; entry_offset < dir_oi->oi_size; entry_offset += OSPFS_DIRENTRY_SIZE) {
+		od = ospfs_inode_data(dir_oi, entry_offset);
 		if (od->od_ino > 0
 		    && strlen(od->od_name) == dentry->d_name.len
 		    && memcmp(od->od_name, dentry->d_name.name, dentry->d_name.len) == 0)
@@ -559,10 +558,10 @@ allocate_block(void)
     uint32_t i;
 
     for (i=0; i < bit_size_of_free_block; i++) {
-	if (bitvector_test(ospfs_bitmap, i)) {
-		bitvector_set(ospfs_bitmap, i);
-		return i;
-	}
+        if (bitvector_test(ospfs_bitmap, i)) {
+            bitvector_set(ospfs_bitmap, i);
+            return i;
+        }
     }
     return 0;
 }
@@ -694,7 +693,7 @@ static void
 zero_out(uint32_t blockno){
 	uint32_t *b = ospfs_block(blockno);
 	int i;
-	for (i=0;i<OSPFS_BLKSIZE;i++)
+	for (i = 0; i < OSPFS_BLKSIZE; i++)
 		b[i] = 0;	
 }
 
@@ -708,52 +707,58 @@ add_block(ospfs_inode_t *oi)
 
 	// keep track of allocations to free in case of -ENOSPC
 	uint32_t *allocated[2] = { 0, 0 };
-	uint32_t blockoff;
+	uint32_t indir2_offset;
 	uint32_t new_block = 0;
 	/* EXERCISE: Your code here */
-	if (n < OSPFS_NDIRECT) 
-	// Simply add one more direct block
+    
+    // Allocate a direct block
+	if (n < OSPFS_NDIRECT)
 	{
 		if ((new_block = allocate_block()) == 0)
 			return -ENOSPC;	
 		oi->oi_direct[n] = new_block;
 	}
+    
+    // Allocate an indirect block
 	if (OSPFS_NDIRECT <= n < OSPFS_NDIRECT + OSPFS_NINDIRECT)
 	{
-		// Allocate the block for oi_indirect
 		if (n == OSPFS_NDIRECT){
 			if ((new_block = allocate_block()) == 0)
 				return -ENOSPC;	
 			oi->oi_indirect = new_block;
-//  HERE!!!!  allocated[0] = new_block;
 		}
+        
 		if ((new_block = allocate_block()) == 0)
 			return -ENOSPC;
 		indirect_block = ospfs_block(oi->oi_indirect);
 		indirect_block[n - OSPFS_NDIRECT] = new_block;
 	}
-	// 
+	
+    // Allocate an indirect block
 	if (OSPFS_NDIRECT + OSPFS_NINDIRECT <= n < OSPFS_MAXFILEBLKS)
 	{
-		blockoff = n - (OSPFS_NDIRECT + OSPFS_NINDIRECT);
-		if (blockoff == 0){
+		indir2_offset = n - (OSPFS_NDIRECT + OSPFS_NINDIRECT);
+        // if there are no indirect2 blocks, add one
+		if (indir2_offset == 0){
 			if ((new_block = allocate_block()) == 0)
 				return -ENOSPC;	
 			oi->oi_indirect2 = new_block;	
 		}
 
+        // add an indirect block for an indirect2 block (1st layer)
 		indirect2_block = ospfs_block(oi->oi_indirect2);
-		if (blockoff % OSPFS_NINDIRECT == 0){
+		if (indir2_offset % OSPFS_NINDIRECT == 0){
 			if ((new_block = allocate_block()) == 0)
 				return -ENOSPC;	
-			indirect2_block[blockoff / OSPFS_NINDIRECT] = new_block;		
+			indirect2_block[indir2_offset / OSPFS_NINDIRECT] = new_block;		
 		}
 
-		indirect_block = ospfs_block(indirect2_block[blockoff / OSPFS_NINDIRECT]);
+        // add a direct block for the indirect layer (2nd layer)
+		indirect_block = ospfs_block(indirect2_block[indir2_offset / OSPFS_NINDIRECT]);
 		if ((new_block = allocate_block()) == 0)
 			return -ENOSPC;
-		indirect_block[blockoff % OSPFS_NINDIRECT] = new_block;
-		return indirect_block[blockoff % OSPFS_NINDIRECT];		
+		indirect_block[indir2_offset % OSPFS_NINDIRECT] = new_block;
+		return indirect_block[indir2_offset % OSPFS_NINDIRECT];		
 	}
 	if (n >= OSPFS_MAXFILEBLKS)
 	{
