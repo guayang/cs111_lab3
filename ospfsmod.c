@@ -1221,7 +1221,7 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 		eprintk("Still fine here!!!\n");
 	// Find an empty inode;
     entry_ino = ospfs_super->os_ninodes++;
-    eprink("entry_ino %d\n",entry_ino);
+    eprintk("entry_ino %d\n",entry_ino);
     // Initialize the dir entry
     od->od_ino = entry_ino;
     strncpy(od->od_name, dentry->d_name.name, dentry->d_name.len);
