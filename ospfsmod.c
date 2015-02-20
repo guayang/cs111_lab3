@@ -814,9 +814,45 @@ remove_block(ospfs_inode_t *oi)
 {
 	// current number of blocks in file
 	uint32_t n = ospfs_size2nblocks(oi->oi_size);
+	uint32_t *indirect2_block;
+	uint32_t *indirect_block;
 
+	uint32_t indir2_offset;
 	/* EXERCISE: Your code here */
-	return -EIO; // Replace this line
+
+	// Just free a direct block
+	if (n <= OSPFS_NDIRECT)
+	{
+		free_block(oi->oi_direct);
+		oi->oi_direct[n] = 0;
+	}
+
+	// Free an indirect block
+	if (OSPFS_NDIRECT < n <= OSPFS_NDIRECT + OSPFS_NINDIRECT)
+	{
+		indirect_block = ospfs_block(oi->oi_indirect);
+		indirect_block[n - OSPFS_NDIRECT] = 0;
+		free_block(oi->oi_indirect);
+	}
+
+	// Delete an indirect2 block	
+	if ((OSPFS_NDIRECT + OSPFS_NINDIRECT) < n <= OSPFS_MAXFILEBLKS)
+	{
+		indir2_offset = n - (OSPFS_NDIRECT + OSPFS_NINDIRECT);
+		// indirect2 blocks pointing to an indirect block
+		indirect2_block = ospfs_block(oi->oi_indirect2);
+		indirect2_block[indir2_offset / OSPFS_NINDIRECT] = 0;
+
+		// an indirect block pointing to a direct block
+		indirect_block = ospfs_block(indirect2_block[indir2_offset / OSPFS_NINDIRECT]);
+		indirect_block[indir2_offset % OSPFS_NINDIRECT] = 0;
+	
+		free_block(oi->oi_indirect);
+		free_block(oi->oi_indirect2);	
+	}
+		
+	oi->oi_size = OSPFS_MAXFILESIZE;
+	return 0;
 }
 
 
