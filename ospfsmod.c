@@ -459,6 +459,8 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 		od = (ospfs_direntry_t *)ospfs_block(dir_oi->oi_direct[(f_pos-2) / OSPFS_MAXNUM_OF_DIRENTRY_IN_ONE_BLOCK]);
 		od += OSPFS_DIRENTRY_SIZE * ((f_pos - 2) % OSPFS_MAXNUM_OF_DIRENTRY_IN_ONE_BLOCK);
 		//uint32_t pos = (f_pos - 2) % OSPFS_MAXNUM_OF_DIRENTRY_IN_ONE_BLOCK;
+
+// Have a look at  ospfs_unlink
 		if (od->od_ino == 0){
 			r = 1;		/* Fix me! */
 			break;		/* Fix me! */	
@@ -1285,7 +1287,7 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 	od = create_blank_direntry(dir_oi);
 	if (IS_ERR(od))
 			return PTR_ERR(od);
-		eprintk("Still fine here!!!\n");
+	eprintk("Still fine here!!!\n");
 	// Find an empty inode;
     if ((entry_ino = find_empty_inode()) == 0)
     	return -ENOSPC;
