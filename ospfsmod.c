@@ -728,6 +728,7 @@ add_block(ospfs_inode_t *oi)
 		if ((new_block = allocate_block()) == 0)
 			return -ENOSPC;	
 		oi->oi_direct[n] = new_block;
+		memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
 	}
     
     	// Allocate an indirect block
@@ -777,7 +778,7 @@ add_block(ospfs_inode_t *oi)
 	}
 
 	oi->oi_size += OSPFS_BLKSIZE;
-	zero_out(new_block);
+	//zero_out(new_block);
 	return 0;
 }
 
@@ -1063,8 +1064,10 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	// If the user is writing past the end of the file, change the file's
 	// size to accomodate the request.  (Use change_size().)
 	/* EXERCISE: Your code here */
-	if (*f_pos + count > oi->oi_size)
+	if (oi->oi_size < *f_pos + count){
 		change_size(oi, count + *f_pos);
+		return 0;
+	}
 
 	// Copy data block by block
 	while (amount < count && retval >= 0) {
