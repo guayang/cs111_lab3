@@ -1205,9 +1205,9 @@ ospfs_link(struct dentry *src_dentry, struct inode *dir, struct dentry *dst_dent
 
 static uint32_t find_empty_inode(){
 	ino_t i;
-	for (i=2;i<ospfs_super->os_ninodes;i++)
+	for (i=2; i<ospfs_super->os_ninodes; i++)
 		if (ospfs_inode(i)->oi_nlink == 0)
-			return ospfs_inode(i);
+			return i;
 	return 0;
 }
 static int
