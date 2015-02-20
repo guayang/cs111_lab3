@@ -722,17 +722,21 @@ add_block(ospfs_inode_t *oi)
 	uint32_t new_block = 0;
 	/* EXERCISE: Your code here */
     
-    	// Allocate a direct block
+    eprintk("current n = %d\n",n);
+    // Allocate a direct block
 	if (n < OSPFS_NDIRECT)
 	{
+		eprintk("try to allocate block\n",n);
 		if ((new_block = allocate_block()) == 0)
 			return -ENOSPC;	
 		oi->oi_direct[n] = new_block;
+		eprintk("try to memset block\n",n);
 		memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
+		eprintk("finish memset block\n",n);
 	}
     
     	// Allocate an indirect block
-	if (OSPFS_NDIRECT <= n < OSPFS_NDIRECT + OSPFS_NINDIRECT)
+	if (OSPFS_NDIRECT <= n && n < OSPFS_NDIRECT + OSPFS_NINDIRECT)
 	{
 		if (n == OSPFS_NDIRECT){
 			if ((new_block = allocate_block()) == 0)
@@ -747,7 +751,7 @@ add_block(ospfs_inode_t *oi)
 	}
 	
     	// Allocate an indirect^2 block
-	if (OSPFS_NDIRECT + OSPFS_NINDIRECT <= n < OSPFS_MAXFILEBLKS)
+	if (OSPFS_NDIRECT + OSPFS_NINDIRECT <= n && n < OSPFS_MAXFILEBLKS)
 	{
 		indir2_offset = n - (OSPFS_NDIRECT + OSPFS_NINDIRECT);
         	// if there are no indirect2 blocks, add one
