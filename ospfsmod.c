@@ -459,19 +459,19 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 		od = (ospfs_direntry_t *)ospfs_block(dir_oi->oi_direct[(f_pos-2) / OSPFS_MAXNUM_OF_DIRENTRY_IN_ONE_BLOCK]);
 		od += OSPFS_DIRENTRY_SIZE * ((f_pos - 2) % OSPFS_MAXNUM_OF_DIRENTRY_IN_ONE_BLOCK);
 		//uint32_t pos = (f_pos - 2) % OSPFS_MAXNUM_OF_DIRENTRY_IN_ONE_BLOCK;
-		if (od[pos]->od_ino == 0){
+		if (od->od_ino == 0){
 			r = 1;		/* Fix me! */
 			break;		/* Fix me! */	
 		}
-		entry_oi = ospfs_inode(od[pos]->od_ino);
+		eprintk("ino: %d\n",od->od_ino);
+		//entry_oi = ospfs_inode(od->od_ino);
 
-		ok_so_far = filldir(dirent, od[pos]->od_name, strlen(od[pos]->od_name), f_pos, od[pos]->od_ino, entry_oi->oi_ftype);
-		if (ok_so_far >= 0)
+		//ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->od_ino, entry_oi->oi_ftype);
+		//if (ok_so_far >= 0)
 			f_pos++;	
-		else {
-			r = 0;
-			break;
-		}
+	//	else {
+	//		r = 0;
+	//	}
 		
 
 		/* Get a pointer to the next entry (od) in the directory.
