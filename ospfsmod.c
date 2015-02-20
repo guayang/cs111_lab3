@@ -729,7 +729,7 @@ add_block(ospfs_inode_t *oi)
 	uint32_t new_block = 0;
 	/* EXERCISE: Your code here */
     
-    // Allocate a direct block
+    	// Allocate a direct block
 	if (n < OSPFS_NDIRECT)
 	{
 		if ((new_block = allocate_block()) == 0)
@@ -737,7 +737,7 @@ add_block(ospfs_inode_t *oi)
 		oi->oi_direct[n] = new_block;
 	}
     
-    // Allocate an indirect block
+    	// Allocate an indirect block
 	if (OSPFS_NDIRECT <= n < OSPFS_NDIRECT + OSPFS_NINDIRECT)
 	{
 		if (n == OSPFS_NDIRECT){
@@ -752,18 +752,18 @@ add_block(ospfs_inode_t *oi)
 		indirect_block[n - OSPFS_NDIRECT] = new_block;
 	}
 	
-    // Allocate an indirect block
+    	// Allocate an indirect^2 block
 	if (OSPFS_NDIRECT + OSPFS_NINDIRECT <= n < OSPFS_MAXFILEBLKS)
 	{
 		indir2_offset = n - (OSPFS_NDIRECT + OSPFS_NINDIRECT);
-        // if there are no indirect2 blocks, add one
+        	// if there are no indirect2 blocks, add one
 		if (indir2_offset == 0){
 			if ((new_block = allocate_block()) == 0)
 				return -ENOSPC;	
 			oi->oi_indirect2 = new_block;	
 		}
 
-        // add an indirect block for an indirect2 block (1st layer)
+        	// add an indirect block for an indirect2 block (1st layer)
 		indirect2_block = ospfs_block(oi->oi_indirect2);
 		if (indir2_offset % OSPFS_NINDIRECT == 0){
 			if ((new_block = allocate_block()) == 0)
@@ -771,7 +771,7 @@ add_block(ospfs_inode_t *oi)
 			indirect2_block[indir2_offset / OSPFS_NINDIRECT] = new_block;		
 		}
 
-        // add a direct block for the indirect layer (2nd layer)
+        	// add a direct block for the indirect layer (2nd layer)
 		indirect_block = ospfs_block(indirect2_block[indir2_offset / OSPFS_NINDIRECT]);
 		if ((new_block = allocate_block()) == 0)
 			return -ENOSPC;
@@ -782,10 +782,10 @@ add_block(ospfs_inode_t *oi)
 	{
 		return -ENOSPC;
 	}
+
 	oi->oi_size += OSPFS_BLKSIZE;
 	zero_out(new_block);
 	return 0;
-	//return -EIO; // Replace this line
 }
 
 
@@ -903,19 +903,19 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 	while (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size)) {
 	    /* EXERCISE: Your code here */
 		add_block(oi);
-		return -EIO; // Replace this line
+		//return -EIO; // Replace this line
 	}
 	while (ospfs_size2nblocks(oi->oi_size) > ospfs_size2nblocks(new_size)) {
 		/* EXERCISE: Your code here */
 		remove_block(oi);
-	    
-		return -EIO; // Replace this line
+	    	//return -EIO; // Replace this line
 	}
 
 	/* EXERCISE: Make sure you update necessary file meta data
 	             and return the proper value. */
 	oi->oi_size = new_size;
-	return -EIO; // Replace this line
+	//return -EIO; // Replace this line
+	return 0;
 }
 
 
