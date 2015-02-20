@@ -457,8 +457,8 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 		 * EXERCISE: Your code here */
 		
 		od = (ospfs_direntry_t *)ospfs_block(dir_oi->oi_direct[(f_pos-2) / OSPFS_MAXNUM_OF_DIRENTRY_IN_ONE_BLOCK]);
-		//od += OSPFS_DIRENTRY_SIZE * ((f_pos - 2) % OSPFS_MAXNUM_OF_DIRENTRY_IN_ONE_BLOCK);
-		uint32_t pos = (f_pos - 2) % OSPFS_MAXNUM_OF_DIRENTRY_IN_ONE_BLOCK;
+		od += OSPFS_DIRENTRY_SIZE * ((f_pos - 2) % OSPFS_MAXNUM_OF_DIRENTRY_IN_ONE_BLOCK);
+		//uint32_t pos = (f_pos - 2) % OSPFS_MAXNUM_OF_DIRENTRY_IN_ONE_BLOCK;
 		if (od[pos]->od_ino == 0){
 			r = 1;		/* Fix me! */
 			break;		/* Fix me! */	
