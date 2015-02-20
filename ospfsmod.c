@@ -1229,7 +1229,7 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 			return PTR_ERR(od);
 		eprintk("Still fine here!!!\n");
 	// Find an empty inode;
-    if ((entry_ino = findEmptyInode()) == 0)
+    if ((entry_ino = find_empty_inode()) == 0)
     	return -ENOSPC;
     eprintk("entry_ino %d\n",entry_ino);
     // Initialize the dir entry
