@@ -1130,7 +1130,8 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 		for (i = 0; i < OSPFS_MAXNUM_OF_DIRENTRY_IN_ONE_BLOCK; i++)
 		{
 			eprintk("i= %d\n",i);
-			od = b + i * OSPFS_DIRENTRY_SIZE;
+			od = (ospfs_direntry_t *)(b + i * OSPFS_DIRENTRY_SIZE);
+			eprintk("od->od_ino %d\n",od->od_ino);
 			if (od->od_ino == 0)
 				return od;
 		}
@@ -1239,6 +1240,7 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
     eprintk("entry_ino %d\n",entry_ino);
     // Initialize the dir entry
     od->od_ino = entry_ino;
+    eprintk("od->od_ino %d\n",od->od_ino);
     strncpy(od->od_name, dentry->d_name.name, dentry->d_name.len);
     od->od_name[dentry->d_name.len] = '\0';
     	eprintk("Still fine here 2!!!\n");
@@ -1249,6 +1251,7 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
     ino->oi_nlink= 1;
 	ino->oi_mode = mode;		  
 		eprintk("Still fine here 3!!!\n");
+		eprintk("od->od_ino %d\n",od->od_ino);
 	/* Execute this code after your function has successfully created the
 	   file.  Set entry_ino to the created file's inode number before
 	   getting here. */
