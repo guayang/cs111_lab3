@@ -450,7 +450,7 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 	while (r == 0 && ok_so_far >= 0 && f_pos >= 2) {
 		ospfs_direntry_t *od;
 		ospfs_inode_t *entry_oi;
-		int entry_offset;
+		int entry_off;
 		od = NULL; // silence compiler warning; entry_off indicates when !od
 
 		/* If at the end of the directory, set 'r' to 1 and exit
@@ -1166,18 +1166,18 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 
 	/* EXERCISE: Your code here. */
 	uint32_t n = ospfs_size2nblocks(dir_oi->oi_size);
-	uint32_t i;
+	uint32_t off = (n-1)*OSPFS_DIRENTRY_SIZE;
 	uint32_t new_block = 0;
 	void* b;
 	ospfs_direntry_t *od;
 	eprintk("n= %d\n",n);
 	// Try to find the empty space
 	if (n > 0)
-		for (int off = (n-1)*OSPFS_DIRENTRY_SIZE; off < dir_oi->oi_size; off += OSPFS_DIRENTRY_SIZE) 
+		for (off; off < dir_oi->oi_size; off += OSPFS_DIRENTRY_SIZE) 
 		{
 
 			ospfs_direntry_t *od = ospfs_inode_data(dir_oi, off);
-			eprintk("i= %d\n  ino= %d",i, od->od_ino);
+			eprintk("off= %d\n  ino= %d",off, od->od_ino);
 			if (od->od_ino == 0)
 				return od;
 		}
