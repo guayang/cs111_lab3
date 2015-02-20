@@ -1116,17 +1116,16 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 	uint32_t n = ospfs_size2nblocks(dir_oi->oi_size);
 	uint32_t i;
 	uint32_t new_block = 0;
-	void* b;
-	ospfs_direntry_t *d;
-	
+	ospfs_direntry_t *od;
+	eprintk("n= %d\n",n);
 	if (n < OSPFS_NDIRECT)
 	{
-		b = ospfs_block(dir_oi->oi_direct[n - 1]);		
+		od = ospfs_block(dir_oi->oi_direct[n - 1]);		
 		for (i = 0; i < OSPFS_MAXNUM_OF_DIRENTRY_IN_ONE_BLOCK; i++)
 		{
-			d = b + i * OSPFS_DIRENTRY_SIZE;
-			if (d->od_ino == 0)
-				return d;
+			eprintk("i= %d\n",i);
+			if (od[i]->od_ino == 0)
+				return &(od[i]);
 		}
 		// If there is no empty dir entry in this block, create a new one		
 		if ((new_block = allocate_block()) == 0)
@@ -1216,22 +1215,25 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 	if (find_direntry(dir_oi,dentry->d_name.name,dentry->d_name.len))
 		return -EEXIST;
 	// Find an empty dir entry
-	od = create_blank_direntry(ospfs_inode_t *dir_oi);
+	od = create_blank_direntry(dir_oi);
 	if (IS_ERR(od))
 			return PTR_ERR(od);
+		eprintk("Still fine here!!!\n");
 	// Find an empty inode;
-    entry_ino = ++ospfs_super->os_ninodes;
+    entry_ino = ospfs_super->os_ninodes++;
+    eprink("entry_ino %d\n",entry_ino);
     // Initialize the dir entry
     od->od_ino = entry_ino;
     strncpy(od->od_name, dentry->d_name.name, dentry->d_name.len);
     od->od_name[dentry->d_name.len] = '\0';
+    	eprintk("Still fine here 2!!!\n");
     // Initialize the inode
     ino = ospfs_inode(entry_ino);
     ino->oi_size = 0;
     ino->oi_ftype= OSPFS_FTYPE_REG;
     ino->oi_nlink= 1;
 	ino->oi_mode = mode;		  
-	
+		eprintk("Still fine here 3!!!\n");
 	/* Execute this code after your function has successfully created the
 	   file.  Set entry_ino to the created file's inode number before
 	   getting here. */
