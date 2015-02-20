@@ -1065,6 +1065,7 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	// size to accomodate the request.  (Use change_size().)
 	/* EXERCISE: Your code here */
 	if (oi->oi_size < *f_pos + count){
+		return 0;
 		change_size(oi, count + *f_pos);
 		return 0;
 	}
