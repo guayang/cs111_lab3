@@ -893,22 +893,25 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 //	uint32_t old_size = oi->oi_size;
 //	int r = 0;
 	eprintk("change size!\n");
-	oi->oi_size = new_size;
-	return 0;
+
 	while (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size)) {
 	    /* EXERCISE: Your code here */
+	    eprintk("Add_block, current size: %d",oi->oi_size, " target size: %d",new_size);
 		add_block(oi);
+		eprintk("After Add_block, current size: %d",oi->oi_size, " target size: %d",new_size);
 		//return -EIO; // Replace this line
 	}
 	while (ospfs_size2nblocks(oi->oi_size) > ospfs_size2nblocks(new_size)) {
 		/* EXERCISE: Your code here */
+		eprintk("Remove_block, current size: %d",oi->oi_size, " target size: %d",new_size);
 		remove_block(oi);
 	    	//return -EIO; // Replace this line
+		eprintk("After Remove_block, current size: %d",oi->oi_size, " target size: %d",new_size);
 	}
 
 	/* EXERCISE: Make sure you update necessary file meta data
 	             and return the proper value. */
-	
+	oi->oi_size = new_size;
 	//return -EIO; // Replace this line
 	return 0;
 }
@@ -1187,9 +1190,9 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 	if ((new_block = allocate_block()) == 0)
 		return ERR_PTR(-ENOSPC);	
 	// Situation of too many dir entry is not considered here!!!!	
-	dir_oi->oi_direct[n] = new_block;
-	dir_oi->oi_size += OSPFS_BLKSIZE;
 	memset(new_block,0,OSPFS_BLKSIZE);
+	dir_oi->oi_direct[n] = new_block;
+	dir_oi->oi_size += OSPFS_DIRENTRY_SIZE;
 	return (ospfs_direntry_t *)ospfs_block(new_block);	
 }
 
@@ -1281,7 +1284,7 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 	od = create_blank_direntry(dir_oi);
 	if (IS_ERR(od))
 			return PTR_ERR(od);
-	eprintk("Still fine here!!!\n");
+	eprintk("Finish creating blank direnty!!!\n");
 	// Find an empty inode;
     if ((entry_ino = find_empty_inode()) == 0)
     	return -ENOSPC;
