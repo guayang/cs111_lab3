@@ -1211,7 +1211,7 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 	if ((new_block = allocate_block()) == 0)
 		return ERR_PTR(-ENOSPC);	
 	// Situation of too many dir entry is not considered here!!!!	
-	memset(new_block,0,OSPFS_BLKSIZE);
+	memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
 	dir_oi->oi_direct[n] = new_block;
 	dir_oi->oi_size += OSPFS_DIRENTRY_SIZE;
 	return (ospfs_direntry_t *)ospfs_block(new_block);	
