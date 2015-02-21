@@ -1190,21 +1190,21 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 
 	/* EXERCISE: Your code here. */
 	uint32_t n = ospfs_size2nblocks(dir_oi->oi_size);
-	uint32_t off = (n-1)*OSPFS_DIRENTRY_SIZE;
+	uint32_t off,blockno;
 	uint32_t new_block = 0;
-	void* b;
 	ospfs_direntry_t *od;
-	eprintk("n= %d\n",n);
+	eprintk("n= %d dir_oi->oi_size= %d\n",n,dir_oi->oi_size);
+	
 	// Try to find the empty space
-	if (n > 0)
-		for (off; off < dir_oi->oi_size; off += OSPFS_DIRENTRY_SIZE) 
+	for (blockno = 0; blockno < n; blockno++){
+		for (off = blockno * OSPFS_BLKSIZE; off < (blockno + 1) * OSPFS_BLKSIZE; off += OSPFS_DIRENTRY_SIZE) 
 		{
-
 			ospfs_direntry_t *od = ospfs_inode_data(dir_oi, off);
-			eprintk("off= %d\n  ino= %d",off, od->od_ino);
+			eprintk("off= %d  ino= %d\n",off, od->od_ino);
 			if (od->od_ino == 0)
 				return od;
 		}
+	}
 
 	if ((new_block = allocate_block()) == 0)
 		return ERR_PTR(-ENOSPC);	
