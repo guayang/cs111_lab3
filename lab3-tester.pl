@@ -91,6 +91,14 @@ close FOO;
       '15'
     ],
 
+    # link two files (hardlink)
+    [ 'echo foo >> foo.txt ; ln foo.txt gah.txt ; cat gah.txt',
+      'foo'
+    ],
+
+    [ 'echo blurb >> gah.txt ; cat foo.txt ; rm foo.txt gah.txt',
+      'foo blurb'
+    ],
 );
 
 my($ntest) = 0;
