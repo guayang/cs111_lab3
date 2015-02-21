@@ -824,6 +824,7 @@ add_block(ospfs_inode_t *oi)
 static int
 remove_block(ospfs_inode_t *oi)
 {
+	eprintk("in remove block!!!!\n");
 	// current number of blocks in file
 	uint32_t n = ospfs_size2nblocks(oi->oi_size);
 	uint32_t *indirect2_block;
