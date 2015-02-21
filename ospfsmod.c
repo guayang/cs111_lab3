@@ -1197,7 +1197,7 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 	
 	// Try to find the empty space
 	for (blockno = 0; blockno < n; blockno++){
-		for (off = blockno * OSPFS_BLKSIZE; off < (blockno + 1) * OSPFS_BLKSIZE; off += OSPFS_DIRENTRY_SIZE) 
+		for (off = blockno * OSPFS_BLKSIZE; off < (blockno + 1) * OSPFS_BLKSIZE; off += OSPFS_DIRENTRY_SIZE)  
 		{
 			ospfs_direntry_t *od = ospfs_inode_data(dir_oi, off);
 			eprintk("off= %d  ino= %d\n",off, od->od_ino);
@@ -1205,6 +1205,8 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 				return od;
 		}
 	}
+
+	eprintk("Fine until here\n");
 
 	if ((new_block = allocate_block()) == 0)
 		return ERR_PTR(-ENOSPC);	
