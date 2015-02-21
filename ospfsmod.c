@@ -832,13 +832,13 @@ remove_block(ospfs_inode_t *oi)
 	if (n <= OSPFS_NDIRECT)
 	{
 		//Bug 1
-		free_block(oi->oi_direct);
-		oi->oi_direct[n] = 0;
+		free_block(oi->oi_direct[n-1]);
+		oi->oi_direct[n-1] = 0;
 	}
 
 	// Free an indirect block
 	// Bug 2
-	if (OSPFS_NDIRECT < n <= OSPFS_NDIRECT + OSPFS_NINDIRECT) 
+	if (OSPFS_NDIRECT < n && n <= OSPFS_NDIRECT + OSPFS_NINDIRECT) 
 	{
 		indirect_block = ospfs_block(oi->oi_indirect);
 		indirect_block[n - OSPFS_NDIRECT] = 0;
@@ -846,7 +846,7 @@ remove_block(ospfs_inode_t *oi)
 	}
 
 	// Delete an indirect2 block	
-	if ((OSPFS_NDIRECT + OSPFS_NINDIRECT) < n <= OSPFS_MAXFILEBLKS)
+	if ((OSPFS_NDIRECT + OSPFS_NINDIRECT) < n && n <= OSPFS_MAXFILEBLKS)
 	{
 		indir2_offset = n - (OSPFS_NDIRECT + OSPFS_NINDIRECT);
 		// indirect2 blocks pointing to an indirect block
@@ -861,7 +861,7 @@ remove_block(ospfs_inode_t *oi)
 		free_block(oi->oi_indirect2);	
 	}
 	//Bug 3
-	oi->oi_size = OSPFS_MAXFILESIZE;
+	oi->oi_size = (n-1) * OSPFS_BLKSIZE;
 	return 0;
 }
 
