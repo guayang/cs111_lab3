@@ -432,6 +432,7 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 	int r = 0;		/* Error return value, if any */
 	int ok_so_far = 0;	/* Return value from 'filldir' */
 	eprintk("readdir\n");
+	eprintk("dir inode size %d\n",dir_oi->oi_size);
 	// f_pos is an offset into the directory's data, plus two.
 	// The "plus two" is to account for "." and "..".
 	if (r == 0 && f_pos == 0) {
@@ -459,22 +460,26 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 		 * EXERCISE: Your code here */
 		
 		entry_off = (f_pos - 2) * OSPFS_DIRENTRY_SIZE;
-		// Find the OSPFS inode for the entry
-		od = ospfs_inode_data(dir_oi, entry_off);
-
-		if (od->od_ino == 0){
+		if (dir_oi->oi_size <= entry_off){
 			r = 1;		/* Fix me! */
 			break;		/* Fix me! */	
 		}
+		// Find the OSPFS inode for the entry
+		od = ospfs_inode_data(dir_oi, entry_off);
 		eprintk("ino: %d\n",od->od_ino);
-		entry_oi = ospfs_inode(od->od_ino);
+		if (od->od_ino > 0){
+			entry_oi = ospfs_inode(od->od_ino);
 
-		ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->od_ino, entry_oi->oi_ftype);
-		if (ok_so_far >= 0)
-			f_pos++;	
-		else {
-			r = 0;
-		}
+			ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->od_ino, entry_oi->oi_ftype);
+			if (ok_so_far >= 0)
+				f_pos++;	
+			else {
+				r = 0;
+			}
+		}else
+			f_pos++;
+		
+		
 	
 
 		/* Get a pointer to the next entry (od) in the directory.
@@ -525,7 +530,7 @@ ospfs_unlink(struct inode *dirino, struct dentry *dentry)
 	ospfs_inode_t *dir_oi = ospfs_inode(dentry->d_parent->d_inode->i_ino);
 	int entry_offset;
 	ospfs_direntry_t *od;
-
+	eprintk("I am inside unlink\n");
 	od = NULL; // silence compiler warning; entry_off indicates when !od
 	for (entry_offset = 0; entry_offset < dir_oi->oi_size; entry_offset += OSPFS_DIRENTRY_SIZE) {
 		od = ospfs_inode_data(dir_oi, entry_offset);
@@ -1214,7 +1219,7 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 	// Situation of too many dir entry is not considered here!!!!	
 	memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
 	dir_oi->oi_direct[n] = new_block;
-	dir_oi->oi_size += OSPFS_DIRENTRY_SIZE;
+	dir_oi->oi_size += OSPFS_BLKSIZE;
 	return (ospfs_direntry_t *)ospfs_block(new_block);	
 }
 
