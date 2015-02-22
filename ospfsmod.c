@@ -194,7 +194,7 @@ ospfs_inode_blockno(ospfs_inode_t *oi, uint32_t offset)
 		uint32_t *indirect_block = ospfs_block(indirect2_block[blockoff / OSPFS_NINDIRECT]);
 		return indirect_block[blockoff % OSPFS_NINDIRECT];
 	} else if (blockno >= OSPFS_NDIRECT) {
-		eprintk("try to find blockno \n",blockno);
+		eprintk("try to find blockno %d\n",blockno);
 		uint32_t *indirect_block = ospfs_block(oi->oi_indirect);
 		return indirect_block[blockno - OSPFS_NDIRECT];
 	} else
@@ -761,14 +761,14 @@ add_block(ospfs_inode_t *oi)
 			oi->oi_indirect = new_block;
 			allocated[0] = new_block;
 			memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
-			eprintk("allocate indirect for block, no %d",new_block)     ;
+			eprintk("allocate indirect for block, no %d\n",new_block)     ;
 		}   
 
 		if ((new_block = allocate_block()) == 0){
 			free_block(allocated[0]);
 			return -ENOSPC;
 		}
-		eprintk("allocate block, no %d",new_block)     ;
+		eprintk("allocate block, no %d\n",new_block)     ;
 		memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
 		indirect_block = ospfs_block(oi->oi_indirect);
 		indirect_block[n - OSPFS_NDIRECT] = new_block;
