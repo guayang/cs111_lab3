@@ -625,6 +625,7 @@ allocate_block(void)
 static void
 free_block(uint32_t blockno)
 {
+	eprintk("I am free\n");
 	bitvector_clear(ospfs_bitmap, blockno);
 }
 
