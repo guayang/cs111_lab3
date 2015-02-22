@@ -1416,11 +1416,14 @@ ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
 	ospfs_inode_t *dir_oi = ospfs_inode(dir->i_ino);
 	uint32_t n = ospfs_size2nblocks(dir_oi->oi_size);
 	uint32_t entry_ino = 0;
-	ospfs_symlink_inode_t *ino;
+	ospfs_symlink_inode_t *sym_ino;
 
 	/* EXERCISE: Your code here. */
-	if (dentry->d_name.len > OSPFS_MAXNAMELEN || symname > OSPFS_MAXNAMELEN)
+	if (dentry->d_name.len > OSPFS_MAXNAMELEN || strlen(symname) > OSPFS_MAXNAMELEN) {
+		eprintk("Dentry name: %d\n", dentry->d_name.len);
+		eprintk("Symname: %d\n", symname);
 		return -ENAMETOOLONG;
+	}
 	if (find_direntry(dir_oi, dentry->d_name.name, dentry->d_name.len))
 		return -EEXIST;
 	if (n >= OSPFS_MAXFILEBLKS)
@@ -1436,12 +1439,12 @@ ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
 	strncpy(od->od_name, dentry->d_name.name, dentry->d_name.len);
 	od->od_name[dentry->d_name.len] = '\0';
 	// initialize the symlink inode
-	ino = ospfs_inode(entry_ino);
-	ino->oi_size = OSPFS_MAXSYMLINKLEN;
-	ino->oi_ftype = OSPFS_FTYPE_SYMLINK;
-	ino->oi_nlink = 1;
-	strncpy(ino->oi_symlink, symname, strlen(symname));
-	ino->oi_symlink[strlen(symname)] = '\0';
+	sym_ino = ospfs_inode(entry_ino);
+	sym_ino->oi_size = strlen(symname);
+	sym_ino->oi_ftype = OSPFS_FTYPE_SYMLINK;
+	sym_ino->oi_nlink = 1;
+	strncpy(sym_ino->oi_symlink, symname, strlen(symname));
+	sym_ino->oi_symlink[strlen(symname)] = '\0';
 
 	/* Execute this code after your function has successfully created the
 	   file.  Set entry_ino to the created file's inode number before
@@ -1477,22 +1480,22 @@ ospfs_follow_link(struct dentry *dentry, struct nameidata *nd)
 	// Exercise: Your code here.
 
 	char *condition = oi->oi_symlink;
-	if (strncmp(oi->oi_symlink, "root?", 5) == 0) {
-		int colon = strchr(oi->oi_symlink, ':') - oi->oi_symlink;
+	if (strncmp(condition, "root?", 5) == 0) {
+		int colon = strchr(condition, ':') - condition;
 		if (current->uid == 0) {
 			//take path 1
 			oi->oi_symlink[colon] = '\0';
-			nd_set_link(nd, strchr(oi->oi_symlink, '?')+1);
+			nd_set_link(nd, strchr(condition, '?')+1);
 		}
 		else {
 			//take path 2
-			nd_set_link(nd, strchr(oi->oi_symlink, ':')+1);
+			nd_set_link(nd, strchr(condition, ':')+1);
 		}
 		return (void *) 0;
 	}	
 
 	// for regular symlinks
-	nd_set_link(nd, oi->oi_symlink);
+	nd_set_link(nd, condition);
 	return (void *) 0;
 }
 
