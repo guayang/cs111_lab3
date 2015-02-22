@@ -472,10 +472,13 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 			switch(entry_oi->oi_ftype){
 				case OSPFS_FTYPE_REG:
 					ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->od_ino, DT_REG);	
+					break;
 				case OSPFS_FTYPE_DIR:
 					ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->od_ino, DT_DIR);	
+					break;
 				case OSPFS_FTYPE_SYMLINK:
 					ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->od_ino, DT_LNK);	
+					break;
 				default:
 					r = 0;
 					break;
