@@ -108,6 +108,15 @@ close FOO;
     [ 'echo "World" >> hello.txt ; diff hello.txt thelink && echo Same contents; rm thelink hello.txt',
       'Same contents'
     ],
+
+    # conditional symlinks
+    [ 'cd test; echo "Not root" > notroot | echo "Root" > root ; ln -s root?root:notroot amiroot ; cat amiroot',
+      'Root'
+    ],
+
+    [ 'su user -c "cat amiroot"',
+      'Not Root'
+    ],
 );
 
 my($ntest) = 0;

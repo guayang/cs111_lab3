@@ -561,6 +561,11 @@ ospfs_unlink(struct inode *dirino, struct dentry *dentry)
 
 	od->od_ino = 0;
 	oi->oi_nlink--;
+
+	// erase the file's data once there's no links pointing to it
+	if (oi->oi_ftype != OSPFS_FTYPE_SYMLINK && oi->oi_nlink == 0)
+		change_size(oi, 0);
+
 	return 0;
 }
 
@@ -1468,6 +1473,22 @@ ospfs_follow_link(struct dentry *dentry, struct nameidata *nd)
 		(ospfs_symlink_inode_t *) ospfs_inode(dentry->d_inode->i_ino);
 	// Exercise: Your code here.
 
+	char *condition = oi->oi_symlink;
+	if (strncmp(oi->oi_symlink, "root?", 5) == 0) {
+		int colon = strchr(oi->oi_symlink, ':') - oi->oi_symlink;
+		if (current->uid == 0) {
+			//take path 1
+			oi->oi_symlink[colon] = '\0';
+			nd_set_link(nd, strchr(oi->oi_symlink, '?')+1);
+		}
+		else {
+			//take path 2
+			nd_set_link(nd, strchr(oi->oi_symlink, ':')+1);
+		}
+		return (void *) 0;
+	}	
+
+	// for regular symlinks
 	nd_set_link(nd, oi->oi_symlink);
 	return (void *) 0;
 }
