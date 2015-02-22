@@ -759,14 +759,14 @@ add_block(ospfs_inode_t *oi)
 			oi->oi_indirect = new_block;
 			allocated[0] = new_block;
 			memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
-			eprintk("allocate indirect for block, no ",new_block)     ;
+			eprintk("allocate indirect for block, no %d",new_block)     ;
 		}   
 
 		if ((new_block = allocate_block()) == 0){
 			free_block(allocated[0]);
 			return -ENOSPC;
 		}
-		eprintk("allocate block, no ",new_block)     ;
+		eprintk("allocate block, no %d",new_block)     ;
 		memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
 		indirect_block = ospfs_block(oi->oi_indirect);
 		indirect_block[n - OSPFS_NDIRECT] = new_block;
