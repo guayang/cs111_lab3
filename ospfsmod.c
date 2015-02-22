@@ -752,54 +752,59 @@ add_block(ospfs_inode_t *oi)
     // Allocate an indirect block
 	if (OSPFS_NDIRECT <= n && n < OSPFS_NDIRECT + OSPFS_NINDIRECT)
 	{
+		eprintk("I am in indirect\n");
 		if (n == OSPFS_NDIRECT){
 			if ((new_block = allocate_block()) == 0)
 				return -ENOSPC;	
 			oi->oi_indirect = new_block;
-		}
-        allocated[0] = new_block;
+			allocated[0] = new_block;
+			memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
+		}        
 		if ((new_block = allocate_block()) == 0){
 			free_block(allocated[0]);
 			return -ENOSPC;
 		}
+		memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
 		indirect_block = ospfs_block(oi->oi_indirect);
 		indirect_block[n - OSPFS_NDIRECT] = new_block;
-		memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
 	}
-	
+	eprintk("Good until here\n");
     // Allocate an indirect^2 block
 	if (OSPFS_NDIRECT + OSPFS_NINDIRECT <= n && n < OSPFS_MAXFILEBLKS)
 	{
 		indir2_offset = n - (OSPFS_NDIRECT + OSPFS_NINDIRECT);
-        	// if there are no indirect2 blocks, add one
+        // if there are no indirect2 blocks, add one
 		if (indir2_offset == 0){
 			if ((new_block = allocate_block()) == 0)
 				return -ENOSPC;	
 			oi->oi_indirect2 = new_block;	
 			allocated[0] = new_block;
+			memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
 		}
 
-        	// add an indirect block for an indirect2 block (1st layer)
+        // add an indirect block for an indirect2 block (1st layer)
 		indirect2_block = ospfs_block(oi->oi_indirect2);
 		if (indir2_offset % OSPFS_NINDIRECT == 0){
 			if ((new_block = allocate_block()) == 0){
 				free_block(allocated[0]);
 				return -ENOSPC;	
 			}
+			memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
 			indirect2_block[indir2_offset / OSPFS_NINDIRECT] = new_block;		
 			allocated[1] = new_block;
 		}
 
-        	// add a direct block for the indirect layer (2nd layer)
+        // add a direct block for the indirect layer (2nd layer)
 		indirect_block = ospfs_block(indirect2_block[indir2_offset / OSPFS_NINDIRECT]);
 		if ((new_block = allocate_block()) == 0){
 			free_block(allocated[0]);
 			free_block(allocated[1]);
 			return -ENOSPC;
 		}
+		memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
 		indirect_block[indir2_offset % OSPFS_NINDIRECT] = new_block;
-		memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);	
 	}
+
 	if (n >= OSPFS_MAXFILEBLKS)
 	{
 		return -ENOSPC;
