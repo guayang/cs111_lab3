@@ -738,7 +738,7 @@ add_block(ospfs_inode_t *oi)
 	// keep track of allocations to free in case of -ENOSPC
 	uint32_t *allocated[2] = { 0, 0 };
 	uint32_t indir2_offset;
-	uint32_t new_block = 0;
+	uint32_t new_block,new_block1 = 0;
 	/* EXERCISE: Your code here */
     
     eprintk("Enter add_block, current n = %d\n",n);
@@ -764,11 +764,11 @@ add_block(ospfs_inode_t *oi)
 			eprintk("allocate indirect for block, no %d\n",new_block)     ;
 		}   
 
-		if ((new_block = allocate_block()) == 0){
+		if ((new_block1 = allocate_block()) == 0){
 			free_block(allocated[0]);
 			return -ENOSPC;
 		}
-		eprintk("allocate block, no %d\n",new_block)     ;
+		eprintk("allocate block, no %d\n",new_block1);
 		memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
 		indirect_block = ospfs_block(oi->oi_indirect);
 		indirect_block[n - OSPFS_NDIRECT] = new_block;
