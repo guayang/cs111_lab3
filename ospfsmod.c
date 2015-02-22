@@ -602,7 +602,7 @@ allocate_block(void)
 
     for (i=0; i < bit_size_of_free_block; i++) {
         if (bitvector_test(ospfs_bitmap, i)) {
-        	eprintk("new block %d", i);
+        	eprintk("new block %zu", i);
             bitvector_set(ospfs_bitmap, i);
             return i;
         }
@@ -625,7 +625,7 @@ allocate_block(void)
 static void
 free_block(uint32_t blockno)
 {
-	eprintk("I am free %d\n",blockno);
+	eprintk("I am free %zu\n",blockno);
 	bitvector_clear(ospfs_bitmap, blockno);
 }
 
@@ -768,14 +768,14 @@ add_block(ospfs_inode_t *oi)
 			oi->oi_indirect = new_block;
 			allocated[0] = new_block;
 			memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
-			eprintk("allocate indirect for block, no %d\n",new_block)     ;
+			eprintk("allocate indirect for block, no %zu\n",new_block)     ;
 		}   
 
 		if ((new_block1 = allocate_block()) == 0){
 			free_block(allocated[0]);
 			return -ENOSPC;
 		}
-		eprintk("allocate block, no %d\n",new_block1);
+		eprintk("allocate block, no %zu\n",new_block1);
 		memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
 		indirect_block = ospfs_block(oi->oi_indirect);
 		indirect_block[n - OSPFS_NDIRECT] = new_block;
