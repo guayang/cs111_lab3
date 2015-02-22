@@ -597,6 +597,7 @@ allocate_block(void)
 
     for (i=0; i < bit_size_of_free_block; i++) {
         if (bitvector_test(ospfs_bitmap, i)) {
+        	eprintk("new block %d", i);
             bitvector_set(ospfs_bitmap, i);
             return i;
         }
