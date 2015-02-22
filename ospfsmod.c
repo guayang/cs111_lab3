@@ -1077,13 +1077,13 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	char *data;
 	uint32_t offset;
 	
-	eprinoi_tk("Enter file write  ! oi_size = %d, f_pos = %d   count = %d  buffer[0] = %c\n ",oi->oi_size,*f_pos,count,*buffer);
+	eprintk("Enter file write  ! oi_size = %d, f_pos = %d   count = %d  buffer[0] = %c\n ",oi->oi_size,*f_pos,count,*buffer);
 	// Support files opened with the O_APPEND flag.  To detect O_APPEND,
 	// use struct file's f_flags field and the O_APPEND bit.
 	/* EXERCISE: Your code here */
 	if (filp->f_flags & O_APPEND)
 		*f_pos = oi->oi_size;
-   	eprinoi_tk("Enter check append! oi_size = %d, f_pos = %d   count = %d  buffer[0] = %c\n ",oi->oi_size,*f_pos,count,*buffer);
+   	eprintk("Enter check append! oi_size = %d, f_pos = %d   count = %d  buffer[0] = %c\n ",oi->oi_size,*f_pos,count,*buffer);
    
 	// If the user is writing past the end of the file, change the file's
 	// size to accomodate the request.  (Use change_size().)
@@ -1091,7 +1091,7 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	if (oi->oi_size < *f_pos + count){
 		change_size(oi, *f_pos + count);
 	}
-	eprinoi_tk("Enter change size ! oi_size = %d, f_pos = %d   count = %d  buffer[0] = %c\n ",oi->oi_size,*f_pos,count,*buffer);
+	eprintk("Enter change size ! oi_size = %d, f_pos = %d   count = %d  buffer[0] = %c\n ",oi->oi_size,*f_pos,count,*buffer);
 	// Copy data block by block
 	while (amount < count && retval >= 0) {
 		eprintk("I am copying\n");
