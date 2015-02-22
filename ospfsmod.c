@@ -759,11 +759,14 @@ add_block(ospfs_inode_t *oi)
 			oi->oi_indirect = new_block;
 			allocated[0] = new_block;
 			memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
-		}        
+			eprintk("allocate indirect for block, no ",new_block)     ;
+		}   
+
 		if ((new_block = allocate_block()) == 0){
 			free_block(allocated[0]);
 			return -ENOSPC;
 		}
+		eprintk("allocate block, no ",new_block)     ;
 		memset(ospfs_block(new_block),0,OSPFS_BLKSIZE);
 		indirect_block = ospfs_block(oi->oi_indirect);
 		indirect_block[n - OSPFS_NDIRECT] = new_block;
@@ -934,9 +937,9 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 
 	while (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size)) {
 	    /* EXERCISE: Your code here */
-	    eprintk("Add_block, current size: %d  target size: %d",oi->oi_size,new_size);
+	    eprintk("Add_block, current size: %d  target size: %d  block_num: %d",oi->oi_size,new_size,ospfs_size2nblocks(oi->oi_size));
 		add_block(oi);
-		eprintk("After Add_block, current size: %d  target size: %d",oi->oi_size,new_size);
+		eprintk("After Add_block, current size: %d  target size: %d  block_num: %d",oi->oi_size,new_size,ospfs_size2nblocks(oi->oi_size));
 		//return -EIO; // Replace this line
 	}
 	while (ospfs_size2nblocks(oi->oi_size) > ospfs_size2nblocks(new_size)) {
@@ -1094,13 +1097,13 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	char *data;
 	uint32_t offset;
 	
-	eprintk("Enter file write  ! oi_size = %d, f_pos = %d   count = %d  buffer[0] = %c\n ",oi->oi_size,*f_pos,count,*buffer);
+	eprintk("Enter file write  ! oi_size = %d, f_pos = %d   count = %zu  buffer[0] = %c\n ",oi->oi_size,*f_pos,count,*buffer);
 	// Support files opened with the O_APPEND flag.  To detect O_APPEND,
 	// use struct file's f_flags field and the O_APPEND bit.
 	/* EXERCISE: Your code here */
 	if (filp->f_flags & O_APPEND)
 		*f_pos = oi->oi_size;
-   	eprintk("Enter check append! oi_size = %d, f_pos = %d   count = %d  buffer[0] = %c\n ",oi->oi_size,*f_pos,count,*buffer);
+   	eprintk("Enter check append! oi_size = %d, f_pos = %d   count = %zu  buffer[0] = %c\n ",oi->oi_size,*f_pos,count,*buffer);
    
 	// If the user is writing past the end of the file, change the file's
 	// size to accomodate the request.  (Use change_size().)
@@ -1108,7 +1111,7 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	if (oi->oi_size < *f_pos + count){
 		change_size(oi, *f_pos + count);
 	}
-	eprintk("Enter change size ! oi_size = %d, f_pos = %d   count = %d  buffer[0] = %c\n ",oi->oi_size,*f_pos,count,*buffer);
+	eprintk("Enter change size ! oi_size = %d, f_pos = %d   count = %zu  buffer[0] = %c\n ",oi->oi_size,*f_pos,count,*buffer);
 	// Copy data block by block
 	while (amount < count && retval >= 0) {
 		eprintk("I am copying\n");
