@@ -1077,7 +1077,7 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	char *data;
 	uint32_t offset;
 	
-	eprintk("Enter file write!\n");
+	eprintk("Enter file write! f_pos = %d   count = %d  buffer[0] = %c\n ",*f_pos,count,*buffer);
 	// Support files opened with the O_APPEND flag.  To detect O_APPEND,
 	// use struct file's f_flags field and the O_APPEND bit.
 	/* EXERCISE: Your code here */
