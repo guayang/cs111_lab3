@@ -91,6 +91,23 @@ close FOO;
       '15'
     ],
 
+    # link two files (hard link)
+    [ 'echo foo >> foo.txt ; ln foo.txt gah.txt ; cat gah.txt',
+      'foo'
+    ],
+
+    [ 'echo blurb >> gah.txt ; cat foo.txt ; rm foo.txt gah.txt',
+      'foo blurb'
+    ],
+
+    # symlink two files (symbolic link)
+    [ 'touch hello.txt; echo 123 > hello.txt; ln -s hello.txt thelink ; diff hello.txt thelink && echo Same contents',
+      'Same contents'
+    ],
+
+    [ 'echo "World" >> hello.txt ; diff hello.txt thelink && echo Same contents; rm thelink hello.txt',
+      'Same contents'
+    ],
 );
 
 my($ntest) = 0;
