@@ -41,7 +41,7 @@ static ospfs_super_t * const ospfs_super =
 	(ospfs_super_t *) &ospfs_data[OSPFS_BLKSIZE];
 // A pointer to the free block bitmap
 
-static uint32_t * ospfs_bitmap = (uint32_t *) &ospfs_data[OSPFS_BLKSIZE * OSPFS_FREEMAP_BLK];
+static void* const ospfs_bitmap = &ospfs_data[OSPFS_BLKSIZE * OSPFS_FREEMAP_BLK];
 
 static int change_size(ospfs_inode_t *oi, uint32_t want_size);
 static ospfs_direntry_t *find_direntry(ospfs_inode_t *dir_oi, const char *name, int namelen);
@@ -106,7 +106,9 @@ static struct super_operations ospfs_superblock_ops;
 static inline void
 bitvector_set(void *vector, int i)
 {
+	eprintk("Before set bit, number is %x:\n", ((uint32_t *)vector)[i/32]);
 	((uint32_t *) vector) [i / 32] |= (1 << (i % 32));
+	eprintk("After  set bit, number is %x:\n", ((uint32_t *)vector)[i/32]);
 }
 
 // bitvector_clear -- Set 'i'th bit of 'vector' to 0.
@@ -120,6 +122,7 @@ bitvector_clear(void *vector, int i)
 static inline int
 bitvector_test(const void *vector, int i)
 {
+	eprintk("test bit i = %d\n", i );
 	return (((const uint32_t *) vector) [i / 32] & (1 << (i % 32))) != 0;
 }
 
@@ -598,12 +601,11 @@ static uint32_t
 allocate_block(void)
 {
     uint32_t bit_size_of_free_block = (ospfs_super->os_firstinob - 2)*OSPFS_BLKBITSIZE;
-    uint32_t i;
+    int i;
 
-    for (i=0; i < bit_size_of_free_block; i++) {
+    for (i=2; i < bit_size_of_free_block; i++) {
         if (bitvector_test(ospfs_bitmap, i)) {
-        	eprintk("new block %zu", i);
-            bitvector_set(ospfs_bitmap, i);
+            bitvector_clear(ospfs_bitmap, i);
             return i;
         }
     }
@@ -626,7 +628,7 @@ static void
 free_block(uint32_t blockno)
 {
 	eprintk("I am free %zu\n",blockno);
-	bitvector_clear(ospfs_bitmap, blockno);
+	bitvector_set(ospfs_bitmap, blockno);
 }
 
 
