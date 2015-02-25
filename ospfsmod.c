@@ -1421,6 +1421,9 @@ ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
 	ospfs_symlink_inode_t *sym_ino = NULL;
 
 	eprintk("In symlink\n");
+	eprintk("Symname: %s\n", symname);
+	eprintk("Direntry name: %s\n", dentry->d_name.name);
+	
 	/* EXERCISE: Your code here. */
 	if (dentry->d_name.len > OSPFS_MAXNAMELEN || strlen(symname) > OSPFS_MAXSYMLINKLEN) {
 		return -ENAMETOOLONG;
@@ -1485,15 +1488,18 @@ ospfs_follow_link(struct dentry *dentry, struct nameidata *nd)
 	char *condition = oi->oi_symlink;
 	if (strncmp(condition, "root?", 5) == 0) {
 		int colon = strchr(condition, ':') - condition;
+		int question = strchr(condition, '?') - condition;
 		if (current->uid == 0) {
 			//take path 1
-			eprintk("Taking path 1\n");
-			oi->oi_symlink[colon] = '\0';
-			nd_set_link(nd, strchr(condition, '?')+1);
+			char path1[256];
+			strncpy(path1,strchr(condition, '?')+1,colon-question-1);
+			path1[colon-question-1] = '\0';
+			//eprintk("Taking path 1: %s\n", path1);
+			nd_set_link(nd, path1);
 		}
 		else {
 			//take path 2
-			eprintk("Taking path 2\n");
+			//eprintk("Taking path 2: %s\n",  strchr(condition, ':')+1);
 			nd_set_link(nd, strchr(condition, ':')+1);
 		}
 		return (void *) 0;

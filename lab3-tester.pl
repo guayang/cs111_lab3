@@ -114,8 +114,8 @@ close FOO;
       'Root'
     ],
 
-    [ 'cd test; su user -c "cat amiroot"',
-      'Not Root'
+    [ 'cd test; su user -c "cat amiroot"; rm amiroot',
+      'Not root'
     ],
 );
 
